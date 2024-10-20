@@ -1,4 +1,6 @@
 import { marketDataRepository, orderRepository } from '@/config/datasource';
+import { OrderEntity } from '@/entities/order.entity';
+import { groupBy } from '@/utils/groupBy';
 import { calculateTransactionsPerformance } from '@/utils/math';
 import { In } from 'typeorm';
 
@@ -26,71 +28,45 @@ export async function retrieve(userId: number) {
     .addOrderBy('date', 'DESC')
     .getMany();
 
-  const data: Array<{
-    instrumentId: number;
-    name: string;
-    type: 'MONEDA' | 'ACCIONES';
-    ticker: string;
-    orders: Array<{
-      type: string;
-      size: number;
-      side: string;
-      status: string;
-      price: number;
-      datetime?: Date;
-    }>;
-  }> = [];
+  const ordersByInstrument = groupBy(userOrders, (order) => order.instrumentId);
 
-  userOrders.forEach((order) => {
-    const itemIndex = data.findIndex(
-      (item) => item.instrumentId === order.instrumentId,
-    );
+  const data = Object.entries(ordersByInstrument).map(
+    ([instrumentId, orders = []]) => {
+      const instrument = orders![0].instrument;
 
-    if (itemIndex === -1) {
-      data.push({
-        instrumentId: order.instrumentId,
-        name: order.instrument.name,
-        type: order.instrument.type as any,
-        ticker: order.instrument.ticker,
-        orders: [
-          {
-            type: order.type,
-            size: order.size,
-            side: order.side,
-            status: order.status,
-            price: order.price,
-            datetime: order.datetime,
-          },
-        ],
-      });
+      return {
+        instrumentId: +instrumentId,
+        ...instrument,
+        orders,
+      };
+    },
+  );
 
-      return;
-    }
+  let positionTotalValue = 0;
 
-    data[itemIndex].orders.push({
-      type: order.type,
-      side: order.side,
-      size: order.size,
-      status: order.status,
-      price: order.price,
-      datetime: order.datetime,
-    });
-  });
+  const marketDataByInstrumentId = groupBy(
+    marketData,
+    (data) => data.instrumentId,
+  );
 
   const positions = data
     .filter((item) => item.type === 'ACCIONES')
     .map((item) => {
-      const instrumentMarketData = marketData.find(
-        (marketData) => marketData.instrumentId === item.instrumentId,
-      );
+      const instrumentMarketData =
+        marketDataByInstrumentId[item.instrumentId][0];
 
-      const purchases = item.orders.filter(
-        (order) => order.side === 'BUY' && order.status === 'FILLED',
-      );
+      const sales: OrderEntity[] = [];
+      const purchases: OrderEntity[] = [];
 
-      const sales = item.orders.filter(
-        (order) => order.side === 'SELL' && order.status === 'FILLED',
-      );
+      item.orders.forEach((order) => {
+        if (order.side === 'BUY' && order.status === 'FILLED') {
+          purchases.push(order);
+        }
+
+        if (order.side === 'SELL' && order.status === 'FILLED') {
+          sales.push(order);
+        }
+      });
 
       const { totalGainPercentage, totalUnits, totalValue } =
         calculateTransactionsPerformance(
@@ -98,6 +74,8 @@ export async function retrieve(userId: number) {
           sales,
           instrumentMarketData?.close || 1,
         );
+
+      positionTotalValue += totalValue;
 
       return {
         name: item.name,
@@ -110,42 +88,24 @@ export async function retrieve(userId: number) {
       };
     });
 
-  const availableCash = data.reduce((acc, item) => {
-    if (item.type === 'MONEDA') {
-      return (
-        acc +
-        item.orders
-          .filter((order) => order.status === 'FILLED')
-          .reduce((acc, order) => {
-            if (order.side === 'CASH_IN') {
-              return acc + order.size * order.price;
-            }
+  const availableCash = userOrders.reduce((acc, order) => {
+    // Only consider orders that are NEW or FILLED to calculate the available cash
+    if (!['NEW', 'FILLED'].includes(order.status)) return acc;
 
-            return acc - order.size * order.price;
-          }, 0)
-      );
+    // Sell and Cash In increase the available cash
+    if (['SELL', 'CASH_IN'].includes(order.side)) {
+      return acc + order.size * order.price;
     }
 
-    return (
-      acc +
-      item.orders.reduce((acc, order) => {
-        if (order.side === 'BUY' && ['FILLED', 'NEW'].includes(order.status)) {
-          return acc - order.size * order.price;
-        }
+    // Buy and Cash Out reduce the available cash
+    if (['BUY', 'CASH_OUT'].includes(order.side)) {
+      return acc - order.size * order.price;
+    }
 
-        if (order.side === 'SELL' && order.status === 'FILLED') {
-          return acc + order.size * order.price;
-        }
-
-        return acc;
-      }, 0)
-    );
+    return acc;
   }, 0);
 
-  const totalAccountValue =
-    positions.reduce((acc, position) => {
-      return acc + position.totalValue;
-    }, 0) + availableCash;
+  const totalAccountValue = positionTotalValue + availableCash;
 
   return {
     totalAccountValue,

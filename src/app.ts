@@ -7,6 +7,7 @@ import { swaggerUI } from '@hono/swagger-ui';
 import { honoApp } from './lib/hono';
 
 export const app = honoApp();
+
 // Middlewares
 app.use(logger());
 app.use(cors());
