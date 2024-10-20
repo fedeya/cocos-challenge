@@ -324,11 +324,7 @@ var instrumentRepository = dataSource.getRepository(InstrumentEntity);
 var marketDataRepository = dataSource.getRepository(MarketDataEntity);
 
 // src/app.ts
-var import_hono5 = require("hono");
 var import_logger = require("hono/logger");
-
-// src/routes/router.ts
-var import_hono4 = require("hono");
 
 // src/services/orders.ts
 var orders_exports = {};
@@ -545,30 +541,68 @@ async function send(payload) {
 __name(send, "send");
 
 // src/routes/v1/orders.ts
-var import_zod_validator = require("@hono/zod-validator");
-var import_hono = require("hono");
+var import_zod_openapi = require("@hono/zod-openapi");
 var import_zod = require("zod");
-var orders = new import_hono.Hono();
-orders.post("/asset", (0, import_zod_validator.zValidator)("json", import_zod.z.union([
-  import_zod.z.object({
-    type: import_zod.z.literal("MARKET")
-  }),
-  import_zod.z.object({
-    type: import_zod.z.literal("LIMIT"),
-    price: import_zod.z.number()
+var orders = new import_zod_openapi.OpenAPIHono();
+var responseOrderSchema = import_zod.z.object({
+  order: import_zod.z.object({
+    id: import_zod.z.number(),
+    userId: import_zod.z.number(),
+    instrumentId: import_zod.z.number(),
+    side: import_zod.z.string(),
+    type: import_zod.z.string(),
+    status: import_zod.z.string(),
+    price: import_zod.z.number().optional(),
+    datetime: import_zod.z.date()
   })
-]).and(import_zod.z.object({
-  amount: import_zod.z.number(),
-  amountType: import_zod.z.union([
-    import_zod.z.literal("CASH"),
-    import_zod.z.literal("UNITS")
-  ]).default("UNITS"),
-  side: import_zod.z.union([
-    import_zod.z.literal("BUY"),
-    import_zod.z.literal("SELL")
-  ]),
-  instrumentId: import_zod.z.number()
-}))), async (c) => {
+});
+var assetRoute = (0, import_zod_openapi.createRoute)({
+  method: "post",
+  tags: [
+    "Orders"
+  ],
+  path: "/asset",
+  summary: "Buy or Sell an Asset",
+  request: {
+    body: {
+      content: {
+        "application/json": {
+          schema: import_zod.z.union([
+            import_zod.z.object({
+              type: import_zod.z.literal("MARKET")
+            }),
+            import_zod.z.object({
+              type: import_zod.z.literal("LIMIT"),
+              price: import_zod.z.number()
+            })
+          ]).and(import_zod.z.object({
+            amount: import_zod.z.number(),
+            amountType: import_zod.z.union([
+              import_zod.z.literal("CASH"),
+              import_zod.z.literal("UNITS")
+            ]).default("UNITS"),
+            side: import_zod.z.union([
+              import_zod.z.literal("BUY"),
+              import_zod.z.literal("SELL")
+            ]),
+            instrumentId: import_zod.z.number()
+          }))
+        }
+      }
+    }
+  },
+  responses: {
+    200: {
+      description: "Success",
+      content: {
+        "application/json": {
+          schema: responseOrderSchema
+        }
+      }
+    }
+  }
+});
+orders.openapi(assetRoute, async (c) => {
   const userId = 3;
   const body = c.req.valid("json");
   const order = await orders_exports.send({
@@ -579,14 +613,41 @@ orders.post("/asset", (0, import_zod_validator.zValidator)("json", import_zod.z.
     order
   });
 });
-orders.post("/cash", (0, import_zod_validator.zValidator)("json", import_zod.z.object({
-  amount: import_zod.z.number(),
-  currency: import_zod.z.string(),
-  side: import_zod.z.union([
-    import_zod.z.literal("CASH_IN"),
-    import_zod.z.literal("CASH_OUT")
-  ])
-})), async (c) => {
+var cashRoute = (0, import_zod_openapi.createRoute)({
+  method: "post",
+  tags: [
+    "Orders"
+  ],
+  path: "/cash",
+  summary: "Cash In or Cash Out",
+  request: {
+    body: {
+      content: {
+        "application/json": {
+          schema: import_zod.z.object({
+            amount: import_zod.z.number(),
+            currency: import_zod.z.string(),
+            side: import_zod.z.union([
+              import_zod.z.literal("CASH_IN"),
+              import_zod.z.literal("CASH_OUT")
+            ])
+          })
+        }
+      }
+    }
+  },
+  responses: {
+    200: {
+      description: "Success",
+      content: {
+        "application/json": {
+          schema: responseOrderSchema
+        }
+      }
+    }
+  }
+});
+orders.openapi(cashRoute, async (c) => {
   const body = c.req.valid("json");
   const userId = 3;
   const order = body.side === "CASH_IN" ? await orders_exports.cashIn({
@@ -604,19 +665,44 @@ orders.post("/cash", (0, import_zod_validator.zValidator)("json", import_zod.z.o
 });
 
 // src/routes/v1/portfolio.ts
-var import_hono2 = require("hono");
-var portfolio = new import_hono2.Hono();
-portfolio.get("/", async (c) => {
+var import_zod_openapi2 = require("@hono/zod-openapi");
+var portfolio = new import_zod_openapi2.OpenAPIHono();
+var route = (0, import_zod_openapi2.createRoute)({
+  path: "/",
+  method: "get",
+  tags: [
+    "Portfolio"
+  ],
+  responses: {
+    200: {
+      content: {
+        "application/json": {
+          schema: import_zod_openapi2.z.object({
+            availableCash: import_zod_openapi2.z.number(),
+            totalAccountValue: import_zod_openapi2.z.number(),
+            positions: import_zod_openapi2.z.object({
+              name: import_zod_openapi2.z.string(),
+              instrumentId: import_zod_openapi2.z.number(),
+              ticker: import_zod_openapi2.z.string(),
+              totalUnits: import_zod_openapi2.z.number(),
+              performancePercentage: import_zod_openapi2.z.number(),
+              currentPrice: import_zod_openapi2.z.number(),
+              totalValue: import_zod_openapi2.z.number()
+            }).array()
+          })
+        }
+      },
+      description: "Success"
+    }
+  }
+});
+portfolio.openapi(route, async (c) => {
   const userId = 3;
   const data = await portfolio_exports.retrieve(userId);
-  return c.json({
-    data
-  });
+  return c.json(data);
 });
 
 // src/routes/v1/instruments.ts
-var import_hono3 = require("hono");
-var import_zod_validator2 = require("@hono/zod-validator");
 var import_zod3 = require("zod");
 
 // src/lib/cache.ts
@@ -718,22 +804,57 @@ async function search(options) {
 __name(search, "search");
 
 // src/routes/v1/instruments.ts
-var instruments = new import_hono3.Hono();
-instruments.get("/search", (0, import_zod_validator2.zValidator)("query", import_zod3.z.object({
-  q: import_zod3.z.string().min(1),
-  limit: import_zod3.z.coerce.number().optional().default(10),
-  page: import_zod3.z.coerce.number().optional().default(0),
-  filter: import_zod3.z.enum([
-    "name",
-    "ticker"
-  ]).array().optional().default([
-    "name",
-    "ticker"
-  ]).or(import_zod3.z.enum([
-    "name",
-    "ticker"
-  ]))
-})), async (c) => {
+var import_zod_openapi3 = require("@hono/zod-openapi");
+var instruments = new import_zod_openapi3.OpenAPIHono();
+var route2 = (0, import_zod_openapi3.createRoute)({
+  method: "get",
+  path: "/search",
+  tags: [
+    "Instruments"
+  ],
+  request: {
+    query: import_zod3.z.object({
+      q: import_zod3.z.string().min(1),
+      limit: import_zod3.z.coerce.number().optional().default(10),
+      page: import_zod3.z.coerce.number().optional().default(0),
+      filter: import_zod3.z.enum([
+        "name",
+        "ticker"
+      ]).array().optional().default([
+        "name",
+        "ticker"
+      ]).or(import_zod3.z.enum([
+        "name",
+        "ticker"
+      ]))
+    })
+  },
+  responses: {
+    200: {
+      description: "Success",
+      content: {
+        "application/json": {
+          schema: import_zod3.z.object({
+            info: import_zod3.z.object({
+              total: import_zod3.z.number(),
+              limit: import_zod3.z.number(),
+              page: import_zod3.z.number(),
+              nextPage: import_zod3.z.number().optional(),
+              hasMore: import_zod3.z.boolean()
+            }),
+            instruments: import_zod3.z.object({
+              id: import_zod3.z.number(),
+              name: import_zod3.z.string(),
+              ticker: import_zod3.z.string(),
+              type: import_zod3.z.string()
+            }).array()
+          })
+        }
+      }
+    }
+  }
+});
+instruments.openapi(route2, async (c) => {
   const { limit, page, q, filter } = c.req.valid("query");
   c.header("Cache-Control", "public, max-age=300");
   const filterArray = Array.isArray(filter) ? filter : [
@@ -762,8 +883,9 @@ instruments.get("/search", (0, import_zod_validator2.zValidator)("query", import
 });
 
 // src/routes/router.ts
-var router = new import_hono4.Hono();
-var v1Router = new import_hono4.Hono();
+var import_zod_openapi4 = require("@hono/zod-openapi");
+var router = new import_zod_openapi4.OpenAPIHono();
+var v1Router = new import_zod_openapi4.OpenAPIHono();
 v1Router.route("/orders", orders);
 v1Router.route("/portfolio", portfolio);
 v1Router.route("/instruments", instruments);
@@ -773,11 +895,23 @@ router.route("/v1", v1Router);
 var import_cors = require("hono/cors");
 var import_timing = require("hono/timing");
 var import_request_id = require("hono/request-id");
-var app = new import_hono5.Hono();
+var import_zod_openapi5 = require("@hono/zod-openapi");
+var import_swagger_ui = require("@hono/swagger-ui");
+var app = new import_zod_openapi5.OpenAPIHono();
 app.use((0, import_logger.logger)());
 app.use((0, import_cors.cors)());
 app.use((0, import_timing.timing)());
 app.use((0, import_request_id.requestId)());
+app.doc("/doc", {
+  openapi: "3.0.0",
+  info: {
+    title: "Cocos Challenge API",
+    version: "1.0.0"
+  }
+});
+app.get("/ui", (0, import_swagger_ui.swaggerUI)({
+  url: "/doc"
+}));
 app.route("/", router);
 
 // src/index.ts
