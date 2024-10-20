@@ -1,7 +1,11 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
 
+interface ContextVariables {
+  userId?: number;
+}
+
 export function honoApp() {
-  return new OpenAPIHono({
+  return new OpenAPIHono<{ Variables: ContextVariables }>({
     defaultHook: (result, c) => {
       console.log(result);
 

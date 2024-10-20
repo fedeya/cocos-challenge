@@ -1,8 +1,12 @@
 import { createRoute, z } from '@hono/zod-openapi';
 import { PortfolioService } from '@cocos-challenge/core';
 import { honoApp } from '@/lib/hono';
+import { cookieAuth } from '@/middlewares/auth';
+import invariant from 'tiny-invariant';
 
 export const portfolio = honoApp();
+
+portfolio.use(cookieAuth);
 
 const positionSchema = z
   .object({
@@ -38,7 +42,9 @@ const route = createRoute({
 });
 
 portfolio.openapi(route, async (c) => {
-  const userId = 3;
+  const userId = c.get('userId');
+
+  invariant(userId, 'userId is required');
 
   const data = await PortfolioService.retrieve(userId);
 

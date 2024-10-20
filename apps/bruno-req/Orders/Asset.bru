@@ -1,0 +1,20 @@
+meta {
+  name: Asset
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{API_URL}}/v1/orders/asset
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "amount": 10,
+    "side": "BUY",
+    "instrumentId": 1,
+    "type": "MARKET"
+  }
+}

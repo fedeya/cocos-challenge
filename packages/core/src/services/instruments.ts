@@ -22,8 +22,6 @@ export async function search(options: SearchOptions) {
 
   builder.take(limit).skip(skip);
 
-  builder.useTransaction(true);
-
   const [data, total] = await builder.getManyAndCount();
 
   const hasMore = total > limit + skip;

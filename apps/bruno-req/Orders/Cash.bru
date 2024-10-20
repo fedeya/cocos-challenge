@@ -1,0 +1,19 @@
+meta {
+  name: Cash
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{API_URL}}/v1/orders/cash
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "amount": 20000,
+    "currency": "ARS",
+    "side": "CASH_IN"
+  }
+}

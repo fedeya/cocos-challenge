@@ -1,8 +1,12 @@
 import { honoApp } from '@/lib/hono';
+import { cookieAuth } from '@/middlewares/auth';
 import { OrdersService } from '@cocos-challenge/core';
 import { createRoute, z } from '@hono/zod-openapi';
+import invariant from 'tiny-invariant';
 
 export const orders = honoApp();
+
+orders.use(cookieAuth);
 
 const orderSchema = z
   .object({
@@ -24,6 +28,7 @@ const assetRoute = createRoute({
   summary: 'Buy or Sell an Asset',
   request: {
     body: {
+      required: true,
       content: {
         'application/json': {
           schema: z
@@ -61,7 +66,9 @@ const assetRoute = createRoute({
 });
 
 orders.openapi(assetRoute, async (c) => {
-  const userId = 3;
+  const userId = c.get('userId');
+
+  invariant(userId, 'userId is required');
 
   const body = c.req.valid('json');
 
@@ -80,6 +87,7 @@ const cashRoute = createRoute({
   summary: 'Cash In or Cash Out',
   request: {
     body: {
+      required: true,
       content: {
         'application/json': {
           schema: z.object({
@@ -106,7 +114,9 @@ const cashRoute = createRoute({
 orders.openapi(cashRoute, async (c) => {
   const body = c.req.valid('json');
 
-  const userId = 3;
+  const userId = c.get('userId');
+
+  invariant(userId, 'userId is required');
 
   const order =
     body.side === 'CASH_IN'
