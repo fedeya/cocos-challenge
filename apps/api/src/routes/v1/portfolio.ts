@@ -1,5 +1,5 @@
 import { createRoute, z } from '@hono/zod-openapi';
-import { PortfolioService } from '@/services/portfolio';
+import { PortfolioService } from '@cocos-challenge/core';
 import { honoApp } from '@/lib/hono';
 
 export const portfolio = honoApp();

@@ -1,12 +1,15 @@
-import { marketDataRepository, orderRepository } from '@/config/datasource';
-import { MarketDataEntity } from '@/entities/marketdata.entity';
-import { OrderEntity } from '@/entities/order.entity';
-import { groupBy } from '@/utils/groupBy';
-import { calculateTransactionsPerformance } from '@/utils/math';
+import {
+  MarketDataEntity,
+  OrderEntity,
+  getMarketDataRepository,
+  getOrderRepository,
+} from '@cocos-challenge/db';
+import { groupBy } from '../utils/groupBy';
+import { calculateTransactionsPerformance } from '../utils/math';
 import { In } from 'typeorm';
 
 export async function retrieve(userId: number) {
-  const userOrders = await orderRepository.find({
+  const userOrders = await getOrderRepository().find({
     where: {
       userId,
     },
@@ -21,7 +24,7 @@ export async function retrieve(userId: number) {
 
   const marketData =
     userInstruments.length > 0 // Only fetch market data if the user has orders
-      ? await marketDataRepository
+      ? await getMarketDataRepository()
           .createQueryBuilder('marketData')
           .where({
             instrumentId: In(userInstruments),

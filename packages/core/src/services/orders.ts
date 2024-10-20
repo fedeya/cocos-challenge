@@ -1,8 +1,8 @@
 import {
-  instrumentRepository,
-  marketDataRepository,
-  orderRepository,
-} from '@/config/datasource';
+  getInstrumentsRepository,
+  getMarketDataRepository,
+  getOrderRepository,
+} from '@cocos-challenge/db';
 import invariant from 'tiny-invariant';
 import { PortfolioService } from './portfolio';
 import { match } from 'ts-pattern';
@@ -14,11 +14,13 @@ interface CashOperationPayload {
 }
 
 export async function cashIn(payload: CashOperationPayload) {
-  const instrument = await instrumentRepository.findOne({
+  const instrument = await getInstrumentsRepository().findOne({
     where: { ticker: payload.currency },
   });
 
   invariant(instrument, `Instrument with ticker ${payload.currency} not found`);
+
+  const orderRepository = getOrderRepository();
 
   const order = orderRepository.create({
     type: 'MARKET',
@@ -39,12 +41,14 @@ export async function cashIn(payload: CashOperationPayload) {
 export async function cashOut(payload: CashOperationPayload) {
   const [portfolio, instrument] = await Promise.all([
     PortfolioService.retrieve(payload.userId),
-    instrumentRepository.findOne({
+    getInstrumentsRepository().findOne({
       where: { ticker: payload.currency },
     }),
   ]);
 
   invariant(instrument, `Instrument with ticker ${payload.currency} not found`);
+
+  const orderRepository = getOrderRepository();
 
   const order = orderRepository.create({
     type: 'MARKET',
@@ -81,7 +85,7 @@ type SendOrderPayload = {
 export async function send(payload: SendOrderPayload) {
   const [portfolio, marketData] = await Promise.all([
     PortfolioService.retrieve(payload.userId),
-    marketDataRepository
+    getMarketDataRepository()
       .createQueryBuilder('marketData')
       .where('marketData.instrumentId = :instrumentId', {
         instrumentId: payload.instrumentId,
@@ -118,6 +122,8 @@ export async function send(payload: SendOrderPayload) {
         ? portfolio.availableCash >= value
         : (position?.totalUnits || 0) >= size
       : false;
+
+  const orderRepository = getOrderRepository();
 
   const order = orderRepository.create({
     type: payload.type,

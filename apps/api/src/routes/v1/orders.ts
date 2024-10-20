@@ -1,5 +1,5 @@
 import { honoApp } from '@/lib/hono';
-import { OrdersService } from '@/services/orders';
+import { OrdersService } from '@cocos-challenge/core';
 import { createRoute, z } from '@hono/zod-openapi';
 
 export const orders = honoApp();

@@ -1,6 +1,6 @@
 import { getCache } from '@/lib/cache';
 import { honoApp } from '@/lib/hono';
-import { InstrumentsService } from '@/services/instruments';
+import { InstrumentsService } from '@cocos-challenge/core';
 import { createRoute, z } from '@hono/zod-openapi';
 
 export const instruments = honoApp();

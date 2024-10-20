@@ -1,4 +1,4 @@
-import { instrumentRepository } from '@/config/datasource';
+import { getInstrumentsRepository } from '@cocos-challenge/db';
 
 interface SearchOptions {
   query: string;
@@ -12,7 +12,7 @@ export async function search(options: SearchOptions) {
 
   const skip = page * limit;
 
-  const builder = instrumentRepository.createQueryBuilder('instrument');
+  const builder = getInstrumentsRepository().createQueryBuilder('instrument');
 
   filter.forEach((f) => {
     builder.orWhere(`LOWER(instrument.${f}) LIKE :q`, {

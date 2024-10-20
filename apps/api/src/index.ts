@@ -1,16 +1,13 @@
 import { serve } from '@hono/node-server';
-import { dataSource } from './config/datasource';
+import { initializeCore } from '@cocos-challenge/core';
 import { app } from './app';
 import { env } from './lib/env';
 
 async function main() {
   try {
-    const { isInitialized } = await dataSource.initialize();
-
-    if (!isInitialized) {
-      console.error('Failed to initialize the database connection');
-      process.exit(1);
-    }
+    await initializeCore({
+      databaseUrl: env.DATABASE_URL,
+    });
 
     console.log('Database connection is established');
   } catch (error) {

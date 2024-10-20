@@ -1,0 +1,25 @@
+{
+  "name": "@cocos-challenge/db",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsup src/index.ts --minify --dts",
+    "dev": "pnpm run build --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@swc/core": "^1.7.36",
+    "@types/better-sqlite3": "^7.6.11",
+    "tsup": "^8.3.0"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.4.0",
+    "pg": "^8.13.0",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^0.3.20"
+  }
+}

@@ -1,4 +1,7 @@
-import { marketDataRepository, orderRepository } from '@/config/datasource';
+import {
+  getMarketDataRepository,
+  getOrderRepository,
+} from '@cocos-challenge/db';
 import { OrdersService } from '../orders';
 import { PortfolioService } from '../portfolio';
 
@@ -114,7 +117,7 @@ describe('Portfolio Service', () => {
   test('should return the correct total account value and performance', async () => {
     const userId = 2;
 
-    await orderRepository.delete({
+    await getOrderRepository().delete({
       userId,
     });
 
@@ -139,7 +142,7 @@ describe('Portfolio Service', () => {
 
     expect(portfolio.totalAccountValue).toBe(10000);
 
-    const marketData = marketDataRepository.create({
+    const marketData = getMarketDataRepository().create({
       instrumentId: 30,
       date: new Date(),
       close: 10,
@@ -149,7 +152,7 @@ describe('Portfolio Service', () => {
       low: 6.2,
     });
 
-    await marketDataRepository.save(marketData);
+    await getMarketDataRepository().save(marketData);
 
     portfolio = await PortfolioService.retrieve(userId);
 

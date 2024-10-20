@@ -1,0 +1,28 @@
+{
+  "name": "@cocos-challenge/api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tsx --env-file ../../.env src/index.ts --watch",
+    "start": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@cocos-challenge/core": "workspace:*",
+    "@hono/node-server": "^1.13.2",
+    "@hono/swagger-ui": "^0.4.1",
+    "@hono/zod-openapi": "^0.16.4",
+    "@hono/zod-validator": "^0.4.1",
+    "hono": "^4.6.5",
+    "lru-cache": "^11.0.1",
+    "redis": "^4.7.0",
+    "zod": "^3.23.8"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.11.17",
+    "tsx": "^4.19.1"
+  }
+}
