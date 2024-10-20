@@ -4,10 +4,11 @@ import { InstrumentEntity } from '../entities/instrument.entity';
 import { MarketDataEntity } from '../entities/marketdata.entity';
 import { OrderEntity } from '../entities/order.entity';
 import { UserEntity } from '../entities/user.entity';
+import { env } from 'process';
 
 export const dataSource = new DataSource({
   type: 'postgres',
-  url: process.env.DATABASE_URL,
+  url: env.DATABASE_URL,
   synchronize: false,
   logging: true,
 

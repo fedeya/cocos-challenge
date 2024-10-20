@@ -1,6 +1,7 @@
 import { serve } from '@hono/node-server';
 import { dataSource } from './config/datasource';
 import { app } from './app';
+import { env } from './lib/env';
 
 async function main() {
   try {
@@ -17,13 +18,11 @@ async function main() {
     process.exit(1);
   }
 
-  const port = 3000;
-
-  console.log(`Server is running on port ${port}`);
+  console.log(`Server is running on port ${env.PORT}`);
 
   serve({
     fetch: app.fetch,
-    port,
+    port: env.PORT,
   });
 }
 

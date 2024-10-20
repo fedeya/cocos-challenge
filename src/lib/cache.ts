@@ -1,5 +1,6 @@
 import { LRUCache } from 'lru-cache';
 import { createClient } from 'redis';
+import { env } from './env';
 
 interface Cache {
   get(key: string): Promise<any>;
@@ -27,7 +28,7 @@ function createLRUCache(): Cache {
 }
 
 const redisClient = createClient({
-  url: process.env.REDIS_URL,
+  url: env.REDIS_URL,
 });
 
 async function createRedisCache(): Promise<Cache> {
