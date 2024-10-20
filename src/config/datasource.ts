@@ -1,19 +1,31 @@
 import 'reflect-metadata';
-import { DataSource } from 'typeorm';
+import { DataSource, DataSourceOptions } from 'typeorm';
 import { InstrumentEntity } from '../entities/instrument.entity';
 import { MarketDataEntity } from '../entities/marketdata.entity';
 import { OrderEntity } from '../entities/order.entity';
 import { UserEntity } from '../entities/user.entity';
-import { env } from 'process';
+import { env } from '@/lib/env';
 
-export const dataSource = new DataSource({
+const entities = [InstrumentEntity, MarketDataEntity, OrderEntity, UserEntity];
+
+const testOptions: DataSourceOptions = {
+  type: 'better-sqlite3',
+  database: ':memory:',
+  entities,
+  synchronize: true,
+};
+
+const devOptions: DataSourceOptions = {
   type: 'postgres',
   url: env.DATABASE_URL,
+  entities,
   synchronize: false,
   logging: true,
+};
 
-  entities: [InstrumentEntity, MarketDataEntity, OrderEntity, UserEntity],
-});
+export const dataSource = new DataSource(
+  env.NODE_ENV === 'test' ? testOptions : devOptions,
+);
 
 export const userRepository = dataSource.getRepository(UserEntity);
 export const orderRepository = dataSource.getRepository(OrderEntity);

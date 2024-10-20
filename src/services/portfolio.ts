@@ -107,13 +107,6 @@ export async function retrieve(userId: number) {
         performancePercentage: totalGainPercentage,
         currentPrice: +(instrumentMarketData?.close || 1),
         totalValue,
-        // orders: item.orders.concat().sort((a, b) => {
-        //   if (a.datetime && b.datetime) {
-        //     return a.datetime.getTime() - b.datetime.getTime();
-        //   }
-        //
-        //   return 0;
-        // }),
       };
     });
 
@@ -121,13 +114,15 @@ export async function retrieve(userId: number) {
     if (item.type === 'MONEDA') {
       return (
         acc +
-        item.orders.reduce((acc, order) => {
-          if (order.side === 'CASH_IN') {
-            return acc + order.size * order.price;
-          }
+        item.orders
+          .filter((order) => order.status === 'FILLED')
+          .reduce((acc, order) => {
+            if (order.side === 'CASH_IN') {
+              return acc + order.size * order.price;
+            }
 
-          return acc - order.size * order.price;
-        }, 0)
+            return acc - order.size * order.price;
+          }, 0)
       );
     }
 
@@ -155,7 +150,7 @@ export async function retrieve(userId: number) {
   return {
     totalAccountValue,
     availableCash,
-    positions,
+    positions: positions.filter((position) => position.totalUnits > 0),
   };
 }
 

@@ -6,8 +6,10 @@
     "strict": true,
     "skipLibCheck": true,
     "types": [
-      "node"
+      "node",
+      "jest"
     ],
+    "esModuleInterop": true,
     "strictPropertyInitialization": false,
     "outDir": "./dist",
     "rootDir": "./src",

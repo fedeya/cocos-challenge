@@ -2,13 +2,13 @@ import { instrumentRepository } from '@/config/datasource';
 
 interface SearchOptions {
   query: string;
-  limit: number;
-  filter: ('name' | 'ticker')[];
-  page: number;
+  limit?: number;
+  filter?: ('name' | 'ticker')[];
+  page?: number;
 }
 
 export async function search(options: SearchOptions) {
-  const { query, limit, filter, page } = options;
+  const { query, limit = 10, filter = ['name', 'ticker'], page = 0 } = options;
 
   const skip = page * limit;
 

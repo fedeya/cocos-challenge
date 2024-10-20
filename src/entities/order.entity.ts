@@ -42,6 +42,6 @@ export class OrderEntity {
   @Column()
   status: string; // NEW, FILLED, REJECTED, CANCELLED
 
-  @Column({ type: 'timestamp', default: 'now()' })
+  @Column()
   datetime: Date;
 }
