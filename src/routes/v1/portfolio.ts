@@ -1,4 +1,4 @@
-import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
+import { createRoute, z } from '@hono/zod-openapi';
 import { PortfolioService } from '@/services/portfolio';
 import { honoApp } from '@/lib/hono';
 

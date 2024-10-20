@@ -1,4 +1,3 @@
-import { Hono } from 'hono';
 import { orders } from './v1/orders';
 import { portfolio } from './v1/portfolio';
 import { instruments } from './v1/instruments';

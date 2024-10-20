@@ -12,7 +12,7 @@ export function honoApp() {
       return c.json(
         {
           success: false,
-          errors: result.error.flatten(),
+          errors: result.error.flatten().fieldErrors,
         },
         {
           status: 400,

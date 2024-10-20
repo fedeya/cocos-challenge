@@ -1,7 +1,7 @@
 import { getCache } from '@/lib/cache';
 import { honoApp } from '@/lib/hono';
 import { InstrumentsService } from '@/services/instruments';
-import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
+import { createRoute, z } from '@hono/zod-openapi';
 
 export const instruments = honoApp();
 
