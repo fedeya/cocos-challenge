@@ -11,13 +11,9 @@
       "jest"
     ],
     "esModuleInterop": true,
-    "strictPropertyInitialization": false,
     "outDir": "./dist",
     "rootDir": "./src",
     "jsx": "react-jsx",
-    "jsxImportSource": "hono/jsx",
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
     "paths": {
       "@/*": [
         "./src/*"
