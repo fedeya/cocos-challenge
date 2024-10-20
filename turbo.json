@@ -1,12 +1,26 @@
 {
+  "globalEnv": [
+    "DATABASE_URL",
+    "REDIS_URL",
+    "NODE_ENV"
+  ],
   "tasks": {
     "build": {
       "dependsOn": [
         "^build"
+      ],
+      "outputs": [
+        "dist/**"
       ]
     },
     "test": {
-      "cache": false
+      "cache": false,
+      "outputs": [
+        "coverage/**"
+      ],
+      "dependsOn": [
+        "build"
+      ]
     },
     "dev": {
       "persistent": true,

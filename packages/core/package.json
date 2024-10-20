@@ -8,8 +8,7 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "test:watch": "jest --watch",
-    "test": "jest",
-    "coverage": "jest --coverage"
+    "test": "jest --coverage"
   },
   "dependencies": {
     "@cocos-challenge/db": "workspace:*",
