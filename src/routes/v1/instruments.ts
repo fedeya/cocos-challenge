@@ -1,14 +1,24 @@
-import { z } from 'zod';
 import { getCache } from '@/lib/cache';
+import { honoApp } from '@/lib/hono';
 import { InstrumentsService } from '@/services/instruments';
-import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
+import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 
-export const instruments = new OpenAPIHono();
+export const instruments = honoApp();
+
+const instrumentSchema = z
+  .object({
+    id: z.number(),
+    name: z.string(),
+    ticker: z.string(),
+    type: z.string(),
+  })
+  .openapi('Instrument');
 
 const route = createRoute({
   method: 'get',
   path: '/search',
   tags: ['Instruments'],
+  summary: 'Search for Instruments',
   request: {
     query: z.object({
       q: z.string().min(1),
@@ -35,14 +45,7 @@ const route = createRoute({
               nextPage: z.number().optional(),
               hasMore: z.boolean(),
             }),
-            instruments: z
-              .object({
-                id: z.number(),
-                name: z.string(),
-                ticker: z.string(),
-                type: z.string(),
-              })
-              .array(),
+            instruments: instrumentSchema.array(),
           }),
         },
       },

@@ -1,12 +1,26 @@
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { PortfolioService } from '@/services/portfolio';
+import { honoApp } from '@/lib/hono';
 
-export const portfolio = new OpenAPIHono();
+export const portfolio = honoApp();
+
+const positionSchema = z
+  .object({
+    name: z.string(),
+    instrumentId: z.number(),
+    ticker: z.string(),
+    totalUnits: z.number(),
+    performancePercentage: z.number(),
+    currentPrice: z.number(),
+    totalValue: z.number(),
+  })
+  .openapi('Position');
 
 const route = createRoute({
   path: '/',
   method: 'get',
   tags: ['Portfolio'],
+  summary: 'Retrieve User Portfolio',
   responses: {
     200: {
       content: {
@@ -14,17 +28,7 @@ const route = createRoute({
           schema: z.object({
             availableCash: z.number(),
             totalAccountValue: z.number(),
-            positions: z
-              .object({
-                name: z.string(),
-                instrumentId: z.number(),
-                ticker: z.string(),
-                totalUnits: z.number(),
-                performancePercentage: z.number(),
-                currentPrice: z.number(),
-                totalValue: z.number(),
-              })
-              .array(),
+            positions: positionSchema.array(),
           }),
         },
       },

@@ -1,11 +1,11 @@
+import { honoApp } from '@/lib/hono';
 import { OrdersService } from '@/services/orders';
-import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
-import { z } from 'zod';
+import { createRoute, z } from '@hono/zod-openapi';
 
-export const orders = new OpenAPIHono();
+export const orders = honoApp();
 
-const responseOrderSchema = z.object({
-  order: z.object({
+const orderSchema = z
+  .object({
     id: z.number(),
     userId: z.number(),
     instrumentId: z.number(),
@@ -14,8 +14,8 @@ const responseOrderSchema = z.object({
     status: z.string(),
     price: z.number().optional(),
     datetime: z.date(),
-  }),
-});
+  })
+  .openapi('Order');
 
 const assetRoute = createRoute({
   method: 'post',
@@ -39,10 +39,8 @@ const assetRoute = createRoute({
             .and(
               z.object({
                 amount: z.number(),
-                amountType: z
-                  .union([z.literal('CASH'), z.literal('UNITS')])
-                  .default('UNITS'),
-                side: z.union([z.literal('BUY'), z.literal('SELL')]),
+                amountType: z.enum(['CASH', 'UNITS']).default('UNITS'),
+                side: z.enum(['BUY', 'SELL']),
                 instrumentId: z.number(),
               }),
             ),
@@ -55,7 +53,7 @@ const assetRoute = createRoute({
       description: 'Success',
       content: {
         'application/json': {
-          schema: responseOrderSchema,
+          schema: orderSchema,
         },
       },
     },
@@ -72,9 +70,7 @@ orders.openapi(assetRoute, async (c) => {
     userId,
   });
 
-  return c.json({
-    order,
-  });
+  return c.json(order);
 });
 
 const cashRoute = createRoute({
@@ -89,7 +85,7 @@ const cashRoute = createRoute({
           schema: z.object({
             amount: z.number(),
             currency: z.string(),
-            side: z.union([z.literal('CASH_IN'), z.literal('CASH_OUT')]),
+            side: z.enum(['CASH_IN', 'CASH_OUT']),
           }),
         },
       },
@@ -100,7 +96,7 @@ const cashRoute = createRoute({
       description: 'Success',
       content: {
         'application/json': {
-          schema: responseOrderSchema,
+          schema: orderSchema,
         },
       },
     },
@@ -125,7 +121,5 @@ orders.openapi(cashRoute, async (c) => {
           currency: body.currency,
         });
 
-  return c.json({
-    order,
-  });
+  return c.json(order);
 });
