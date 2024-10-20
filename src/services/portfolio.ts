@@ -1,4 +1,5 @@
 import { marketDataRepository, orderRepository } from '@/config/datasource';
+import { MarketDataEntity } from '@/entities/marketdata.entity';
 import { OrderEntity } from '@/entities/order.entity';
 import { groupBy } from '@/utils/groupBy';
 import { calculateTransactionsPerformance } from '@/utils/math';
@@ -18,77 +19,72 @@ export async function retrieve(userId: number) {
     new Set(userOrders.map((order) => order.instrumentId)),
   );
 
-  const marketData = await marketDataRepository
-    .createQueryBuilder('marketData')
-    .where({
-      instrumentId: In(userInstruments),
-    })
-    .distinctOn(['instrumentId'])
-    .orderBy('instrumentId')
-    .addOrderBy('date', 'DESC')
-    .getMany();
+  const marketData =
+    userInstruments.length > 0 // Only fetch market data if the user has orders
+      ? await marketDataRepository
+          .createQueryBuilder('marketData')
+          .where({
+            instrumentId: In(userInstruments),
+          })
+          .distinctOn(['instrumentId'])
+          .orderBy('instrumentId')
+          .addOrderBy('date', 'DESC')
+          .getMany()
+      : [];
 
   const ordersByInstrument = groupBy(userOrders, (order) => order.instrumentId);
-
-  const data = Object.entries(ordersByInstrument).map(
-    ([instrumentId, orders = []]) => {
-      const instrument = orders![0].instrument;
-
-      return {
-        instrumentId: +instrumentId,
-        ...instrument,
-        orders,
-      };
-    },
-  );
-
-  let positionTotalValue = 0;
 
   const marketDataByInstrumentId = groupBy(
     marketData,
     (data) => data.instrumentId,
   );
 
-  const positions = data
-    .filter((item) => item.type === 'ACCIONES')
-    .map((item) => {
-      const instrumentMarketData =
-        marketDataByInstrumentId[item.instrumentId][0];
-
-      const sales: OrderEntity[] = [];
-      const purchases: OrderEntity[] = [];
-
-      item.orders.forEach((order) => {
-        if (order.side === 'BUY' && order.status === 'FILLED') {
-          purchases.push(order);
-        }
-
-        if (order.side === 'SELL' && order.status === 'FILLED') {
-          sales.push(order);
-        }
-      });
+  const data = Object.entries(ordersByInstrument).map(
+    ([instrumentId, orders = []]) => {
+      const instrument = orders[0].instrument;
+      const { purchases, sales, currentPrice } = processInstrumentOrders(
+        orders,
+        marketDataByInstrumentId,
+      );
 
       const { totalGainPercentage, totalUnits, totalValue } =
-        calculateTransactionsPerformance(
-          purchases,
-          sales,
-          instrumentMarketData?.close || 1,
-        );
-
-      positionTotalValue += totalValue;
+        calculateTransactionsPerformance(purchases, sales, currentPrice);
 
       return {
-        name: item.name,
-        instrumentId: item.instrumentId,
-        ticker: item.ticker,
+        instrumentId: +instrumentId,
+        name: instrument.name,
+        ticker: instrument.ticker,
+        type: instrument.type,
         totalUnits,
         performancePercentage: totalGainPercentage,
-        currentPrice: +(instrumentMarketData?.close || 1),
+        currentPrice,
         totalValue,
       };
-    });
+    },
+  );
 
-  const availableCash = userOrders.reduce((acc, order) => {
+  const filteredPositions = data.filter(
+    (item) => item.totalUnits > 0 && item.type === 'ACCIONES',
+  );
+
+  const availableCash = calculateAvailableCash(userOrders);
+
+  const positionTotalValue = filteredPositions.reduce(
+    (acc, position) => acc + position.totalValue,
+    0,
+  );
+
+  const totalAccountValue = positionTotalValue + availableCash;
+
+  return {
+    totalAccountValue,
+    availableCash,
+    positions: filteredPositions,
+  };
+}
+
+function calculateAvailableCash(orders: OrderEntity[]) {
+  return orders.reduce((acc, order) => {
     // Only consider orders that are NEW or FILLED to calculate the available cash
     if (!['NEW', 'FILLED'].includes(order.status)) return acc;
 
@@ -104,13 +100,34 @@ export async function retrieve(userId: number) {
 
     return acc;
   }, 0);
+}
 
-  const totalAccountValue = positionTotalValue + availableCash;
+function processInstrumentOrders(
+  orders: OrderEntity[],
+  marketDataByInstrumentId: Record<number, MarketDataEntity[]>,
+) {
+  const sales: OrderEntity[] = [];
+  const purchases: OrderEntity[] = [];
+
+  orders.forEach((order) => {
+    if (order.status !== 'FILLED') return;
+
+    if (order.side === 'BUY') {
+      purchases.push(order);
+    } else if (order.side === 'SELL') {
+      sales.push(order);
+    }
+  });
+
+  const instrumentMarketData =
+    marketDataByInstrumentId[orders[0].instrumentId]?.[0] || {};
+
+  const currentPrice = instrumentMarketData.close;
 
   return {
-    totalAccountValue,
-    availableCash,
-    positions: positions.filter((position) => position.totalUnits > 0),
+    purchases,
+    sales,
+    currentPrice,
   };
 }
 
