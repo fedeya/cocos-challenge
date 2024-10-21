@@ -2,9 +2,24 @@ name: CI
 
 on:
   push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
+    name: Test
+    environment:
+      name: Test
+      url: ${{ steps.deployment.outputs.page_url }}
+
     runs-on: ubuntu-latest
 
     steps:
@@ -23,3 +38,15 @@ jobs:
 
     - name: Run tests
       run: pnpm test
+
+    - name: Setup Pages
+      uses: actions/configure-pages@v5
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        path: ./packages/core/coverage/lcov-report
+
+    - name: Deploy Pages
+      uses: actions/deploy-pages@v4
+      id: deployment
