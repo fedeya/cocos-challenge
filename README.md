@@ -90,6 +90,13 @@ To start the API server:
 
 The API server will be available at `http://localhost:3000`.
 
+#### Docker (Recommended)
+
+You can also run the API server using Docker:
+   ```bash
+   docker-compose up
+   ```
+
 ##  Testing
 
 The project includes unit and functional tests for the services. To run the tests:
