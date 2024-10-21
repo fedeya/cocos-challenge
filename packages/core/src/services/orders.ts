@@ -15,7 +15,7 @@ interface CashOperationPayload {
 
 export async function cashIn(payload: CashOperationPayload) {
   const instrument = await getInstrumentsRepository().findOne({
-    where: { ticker: payload.currency },
+    where: { ticker: payload.currency, type: 'MONEDA' },
   });
 
   invariant(instrument, `Instrument with ticker ${payload.currency} not found`);
@@ -42,7 +42,7 @@ export async function cashOut(payload: CashOperationPayload) {
   const [portfolio, instrument] = await Promise.all([
     PortfolioService.retrieve(payload.userId),
     getInstrumentsRepository().findOne({
-      where: { ticker: payload.currency },
+      where: { ticker: payload.currency, type: 'MONEDA' },
     }),
   ]);
 
