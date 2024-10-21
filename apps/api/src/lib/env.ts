@@ -9,4 +9,14 @@ const envSchema = z.object({
     .default('development'),
 });
 
+const safeParsingEnv = envSchema.safeParse(process.env);
+
+if (!safeParsingEnv.success) {
+  const errors = safeParsingEnv.error.flatten().fieldErrors;
+
+  console.error('Invalid environment variables:', errors);
+
+  throw new Error('Invalid environment variables');
+}
+
 export const env = envSchema.parse(process.env);
