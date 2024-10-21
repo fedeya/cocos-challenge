@@ -145,4 +145,30 @@ export async function send(payload: SendOrderPayload) {
   return order;
 }
 
+interface CancelOrderPayload {
+  userId: number;
+  orderId: number;
+}
+
+export async function cancel(payload: CancelOrderPayload) {
+  const orderRepository = getOrderRepository();
+
+  const order = await orderRepository.findOne({
+    where: {
+      id: payload.orderId,
+      userId: payload.userId,
+      type: 'LIMIT',
+      status: 'NEW',
+    },
+  });
+
+  invariant(order, 'Order not found');
+
+  order.status = 'CANCELLED';
+
+  await orderRepository.save(order);
+
+  return order;
+}
+
 export * as OrdersService from './orders';

@@ -33,6 +33,7 @@ This project is an API to manage users' portfolios, assets, and market orders, b
   - `/v1/portfolio`: Get user’s portfolio (cash, assets, and returns).
   - `/v1/orders/cash`: Manage cash orders (`CASH_IN`, `CASH_OUT`).
   - `/v1/orders/asset`: Buy or sell assets (Market or Limit orders).
+  - `/v1/orders/cancel`: Cancel new limit order.
   - `/v1/instruments/search`: Search for instruments by ticker or name.
 
 ## ⚙️ Design Decisions

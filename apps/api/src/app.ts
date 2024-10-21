@@ -5,6 +5,7 @@ import { timing } from 'hono/timing';
 import { requestId } from 'hono/request-id';
 import { swaggerUI } from '@hono/swagger-ui';
 import { honoApp } from './lib/hono';
+import { HTTPException } from 'hono/http-exception';
 
 export const app = honoApp();
 
@@ -54,3 +55,19 @@ app.get('/api', swaggerUI({ url: '/doc' }));
 
 // Base Routing
 app.route('/', router);
+
+app.onError((err, c) => {
+  if (err instanceof HTTPException) {
+    const response = err.getResponse();
+
+    return c.json(
+      {
+        success: false,
+        message: err.message,
+      },
+      { status: response.status },
+    );
+  }
+
+  return c.json({ message: 'Internal Server Error' }, { status: 500 });
+});

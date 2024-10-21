@@ -353,4 +353,37 @@ describe('Orders Service', () => {
 
     expect(result.status).toBe('REJECTED');
   });
+
+  test('should can cancel a limit order', async () => {
+    const userId = 3;
+
+    let userPorfolio = await PortfolioService.retrieve(userId);
+
+    expect(userPorfolio.availableCash).toBe(14);
+
+    const result = await OrdersService.send({
+      userId,
+      amount: 4,
+      price: 2,
+      side: 'BUY',
+      type: 'LIMIT',
+      amountType: 'UNITS',
+      instrumentId: 30, // the 30 close price is 7
+    });
+
+    userPorfolio = await PortfolioService.retrieve(userId);
+
+    expect(result.status).toBe('NEW');
+    expect(userPorfolio.availableCash).toBe(6);
+
+    const cancelResult = await OrdersService.cancel({
+      userId,
+      orderId: result.id,
+    });
+
+    userPorfolio = await PortfolioService.retrieve(userId);
+
+    expect(cancelResult.status).toBe('CANCELLED');
+    expect(userPorfolio.availableCash).toBe(14);
+  });
 });

@@ -2,6 +2,7 @@ import { honoApp } from '@/lib/hono';
 import { cookieAuth } from '@/middlewares/auth';
 import { OrdersService } from '@cocos-challenge/core';
 import { createRoute, z } from '@hono/zod-openapi';
+import { HTTPException } from 'hono/http-exception';
 import invariant from 'tiny-invariant';
 
 export const orders = honoApp();
@@ -137,4 +138,53 @@ orders.openapi(cashRoute, async (c) => {
         });
 
   return c.json(order);
+});
+
+const cancelRoute = createRoute({
+  method: 'patch',
+  tags: ['Orders'],
+  path: '/cancel',
+  summary: 'Cancel an Order',
+  security: [{ cookieAuth: [] }],
+  request: {
+    body: {
+      required: true,
+      content: {
+        'application/json': {
+          schema: z.object({
+            orderId: z.number(),
+          }),
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Success',
+      content: {
+        'application/json': {
+          schema: orderSchema,
+        },
+      },
+    },
+  },
+});
+
+orders.openapi(cancelRoute, async (c) => {
+  const body = c.req.valid('json');
+
+  const userId = c.get('userId');
+
+  invariant(typeof userId !== 'undefined', 'userId is required');
+
+  try {
+    const order = await OrdersService.cancel({
+      userId,
+      orderId: body.orderId,
+    });
+
+    return c.json(order);
+  } catch (err) {
+    throw new HTTPException(404, { message: 'Order not found' });
+  }
 });
