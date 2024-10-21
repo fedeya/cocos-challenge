@@ -1,0 +1,19 @@
+meta {
+  name: Search Instruments
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{API_URL}}/v1/instruments/search?q=IR&filter=ticker&limit=10&page=0
+  body: none
+  auth: none
+}
+
+params:query {
+  q: IR
+  filter: ticker
+  limit: 10
+  page: 0
+  ~filter: name
+}

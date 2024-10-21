@@ -8,6 +8,7 @@ export const auth = honoApp();
 const route = createRoute({
   method: 'post',
   path: '/',
+  tags: ['Auth'],
   request: {
     body: {
       required: true,

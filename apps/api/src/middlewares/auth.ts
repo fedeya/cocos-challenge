@@ -16,6 +16,8 @@ export const cookieAuth = createMiddleware<{
     });
   }
 
+  console.log(userId);
+
   c.set('userId', +userId);
 
   await next();

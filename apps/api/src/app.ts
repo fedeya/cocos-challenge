@@ -43,6 +43,12 @@ app.doc('/doc', {
   ],
 });
 
+app.openAPIRegistry.registerComponent('securitySchemes', 'cookieAuth', {
+  type: 'apiKey',
+  in: 'cookie',
+  name: 'userId',
+});
+
 // Swagger UI
 app.get('/api', swaggerUI({ url: '/doc' }));
 

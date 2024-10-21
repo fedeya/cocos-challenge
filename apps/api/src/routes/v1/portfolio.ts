@@ -25,6 +25,7 @@ const route = createRoute({
   method: 'get',
   tags: ['Portfolio'],
   summary: 'Retrieve User Portfolio',
+  security: [{ cookieAuth: [] }],
   responses: {
     200: {
       content: {
@@ -44,7 +45,7 @@ const route = createRoute({
 portfolio.openapi(route, async (c) => {
   const userId = c.get('userId');
 
-  invariant(userId, 'userId is required');
+  invariant(typeof userId !== 'undefined', 'userId is required');
 
   const data = await PortfolioService.retrieve(userId);
 

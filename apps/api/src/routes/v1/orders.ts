@@ -25,6 +25,7 @@ const assetRoute = createRoute({
   method: 'post',
   tags: ['Orders'],
   path: '/asset',
+  security: [{ cookieAuth: [] }],
   summary: 'Buy or Sell an Asset',
   request: {
     body: {
@@ -68,7 +69,7 @@ const assetRoute = createRoute({
 orders.openapi(assetRoute, async (c) => {
   const userId = c.get('userId');
 
-  invariant(userId, 'userId is required');
+  invariant(typeof userId !== 'undefined', 'userId is required');
 
   const body = c.req.valid('json');
 
@@ -85,6 +86,7 @@ const cashRoute = createRoute({
   tags: ['Orders'],
   path: '/cash',
   summary: 'Cash In or Cash Out',
+  security: [{ cookieAuth: [] }],
   request: {
     body: {
       required: true,
@@ -116,7 +118,7 @@ orders.openapi(cashRoute, async (c) => {
 
   const userId = c.get('userId');
 
-  invariant(userId, 'userId is required');
+  invariant(typeof userId !== 'undefined', 'userId is required');
 
   const order =
     body.side === 'CASH_IN'

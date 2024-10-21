@@ -9,11 +9,10 @@ export const router = new OpenAPIHono();
 const v1Router = new OpenAPIHono();
 
 // V1 routes
-
-v1Router.route('/orders', orders);
-v1Router.route('/portfolio', portfolio);
-v1Router.route('/instruments', instruments);
 v1Router.route('/auth', auth);
+v1Router.route('/portfolio', portfolio);
+v1Router.route('/orders', orders);
+v1Router.route('/instruments', instruments);
 
 // Base routes
 router.route('/v1', v1Router);
