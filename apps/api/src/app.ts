@@ -6,6 +6,7 @@ import { requestId } from 'hono/request-id';
 import { swaggerUI } from '@hono/swagger-ui';
 import { honoApp } from './lib/hono';
 import { HTTPException } from 'hono/http-exception';
+import { showRoutes } from 'hono/dev';
 
 export const app = honoApp();
 

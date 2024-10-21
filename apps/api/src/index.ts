@@ -2,6 +2,7 @@ import { serve } from '@hono/node-server';
 import { initializeCore } from '@cocos-challenge/core';
 import { app } from './app';
 import { env } from './lib/env';
+import { showRoutes } from 'hono/dev';
 
 async function main() {
   try {
@@ -16,6 +17,8 @@ async function main() {
   }
 
   console.log(`Server is running on port ${env.PORT}`);
+
+  showRoutes(app);
 
   serve({
     fetch: app.fetch,

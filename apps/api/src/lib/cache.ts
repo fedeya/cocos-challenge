@@ -56,7 +56,9 @@ async function createRedisCache(): Promise<Cache> {
 export async function getCache(): Promise<Cache> {
   if (!global.__cache) {
     try {
-      global.__cache = await createRedisCache();
+      global.__cache = env.REDIS_URL
+        ? await createRedisCache()
+        : createLRUCache();
     } catch (error) {
       console.error('Failed to create Redis cache', error);
       console.log('Falling back to in-memory cache');
