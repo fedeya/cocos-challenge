@@ -49,7 +49,8 @@ const assetRoute = createRoute({
                 side: z.enum(['BUY', 'SELL']),
                 instrumentId: z.number(),
               }),
-            ),
+            )
+            .openapi('AssetOrderPayload'),
         },
       },
     },
@@ -92,11 +93,13 @@ const cashRoute = createRoute({
       required: true,
       content: {
         'application/json': {
-          schema: z.object({
-            amount: z.number(),
-            currency: z.string(),
-            side: z.enum(['CASH_IN', 'CASH_OUT']),
-          }),
+          schema: z
+            .object({
+              amount: z.number(),
+              currency: z.string(),
+              side: z.enum(['CASH_IN', 'CASH_OUT']),
+            })
+            .openapi('CashOrderPayload'),
         },
       },
     },

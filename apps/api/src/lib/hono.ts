@@ -7,11 +7,7 @@ interface ContextVariables {
 export function honoApp() {
   return new OpenAPIHono<{ Variables: ContextVariables }>({
     defaultHook: (result, c) => {
-      console.log(result);
-
-      if (result.success) {
-        return;
-      }
+      if (result.success) return;
 
       return c.json(
         {
